@@ -1,21 +1,28 @@
 <!doctype html>
-<html lang="en">
 
+<html lang="en">
+{% extends "base.html" %}
+{% block content %}
 	<head>
 		<meta charset="utf-8">
-		<title>FAQ</title>
+		<title>Used Car Market Analysis</title>
                 <link rel=stylesheet type=text/css href='{{ url_for('static', filename='css/style.css') }}'>
+</head>
+
 <style>
 
 </style>
 	</head>
 	<body>
 		<div class=page>
-  			<h1>Frequently Asked Questions</h1>
+  			<h1>Brief Description</h1>
   			<div class=metanav>
-
-    			<h3>Please verify the inputs...</h3>
-<br><p>{{error}} </p>
+<div style="text-align:justify">
+    			<h4 style="font-weight:normal">&nbsp &nbsp &nbsp Prices in the user car market car fluctuate based on many factors including gas prices, the introduction of a new technology, or a recall event like non-compliant emissions.  Pricing suggestions can be obtained through several websites, however, detailed overview information and pricing trends are not easily available.<br><br>
+    			&nbsp &nbsp &nbsp This website offers a portal through which to view the current asking prices of used cars.  This information provides the user with an overview of the current trends of prices for a given mileage and option package.  Buyers will find this information useful as a starting point to determine potential vehicles.  In addition, the classification algorithm allows buyers to determine weather a particular vehicle price is excessively above or below the typical range, which may prompt further investigation.  <br><br>&nbsp &nbsp &nbsp Sellers will find the information useful when choosing a price point relative to what is available elsewhere.  For a particular car, the seller can choose a price at the lower end of the range for a quick sale, or a higher price knowing that the automobile may justify added salesmanship. 
+<br><br>&nbsp &nbsp &nbsp Vehicles are classified in terms of pricing trends, rather than a static number like price.  The trend characterization is derived from market forces, and is a natural and well suited metric for classification.      
+    			</a>
+    			</div>
 <h4> Please use the back button or... </h4>
 <a href=index> Start a fresh search</a> </h3>
 
@@ -23,6 +30,7 @@
   			</div>
 		</div>
 	</body>
+	{% endblock %}
 </html>
 
 
