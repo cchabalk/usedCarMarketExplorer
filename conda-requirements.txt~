@@ -1,7 +1,6 @@
 scipy
 numpy
 pandas
-base64
 matplotlib
 io
 seaborn
