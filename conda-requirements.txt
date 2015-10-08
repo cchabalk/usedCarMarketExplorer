@@ -1,4 +1,9 @@
 scipy
 numpy
 pandas
-bokeh
+base64
+matplotlib
+io
+base64
+seaborn
+sk-learn
