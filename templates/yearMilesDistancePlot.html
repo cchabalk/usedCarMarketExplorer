@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+	
+<!--  <head>
+       	<title>{{ tickerSymbol }} data </title>
+ <!-- <link href="http://cdn.pydata.org/bokeh/release/bokeh-0.9.3.min.css" rel="stylesheet" type="text/css"> 
+<script src="http://cdn.pydata.org/bokeh/release/bokeh-0.9.3.min.js"> -->
+<!--  </head> -->
+
+<head>
+{% extends "base.html" %}
+{% block content %}
+
+		<meta charset="utf-8">
+		<title>Used Car Market Analysis</title>
+                <link rel=stylesheet type=text/css href='{{ url_for('static', filename='css/tables.css') }}'>
+
+	</head>
+	<body>
+		<div class=page>
+
+  			<h1>Summary of {{ titleString }}<br>
+ 			<a href=index > Back</h1></a> 
+  			<div class=metanav>
+  			<h4>Multi Year Results<br></h4>
+  			{{plottingData2 | safe }}
+  			
+
+<br>
+<br>
+<HR>
+<br>
+
+
+
+
+
+<h4 id="groupings">Groupings based on options, {{ finalYear }} {{ titleString }}</h4>
+                        {{plottingData3 | safe }}
+			
+<h4>Enter the price and mileage to estimate the option package</h4>
+
+
+
+
+
+
+
+    			<form id='input' method='post' action='/updateWithPrediction'>	<!-- notice the action -->
+	  			<p>Price: &nbsp &nbsp &nbsp<input type='text' size=10 name='price' />
+<p>Mileage: &nbsp<input type='text' size=10 name='mileage' />
+
+				<input type="submit" value="predict"></p>
+				</form>
+
+
+
+<h4 style='font-family:courier'>Predicted Group: {{ predicted_group  }}</h4>
+
+  			</div>
+		</div>
+
+	</body>
+
+{% endblock %}
+</html>
+

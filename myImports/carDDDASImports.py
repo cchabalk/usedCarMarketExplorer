@@ -1,0 +1,500 @@
+# import data from a file or from a website
+import copy
+import requests
+import re
+from bs4 import BeautifulSoup
+import numpy as np
+import matplotlib.pyplot as plt
+#from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
+import matplotlib.colors as colors
+import matplotlib.cm as cmx
+import pandas as pd
+#import pdb
+
+def importData(params):
+    queryType = determineIfFileWebpagePandas(params)
+    #print(queryType)
+    columns = ['origin','year','make','model',
+               'trim','miles','color','price','dist']
+    carsDF = pd.DataFrame(columns=columns)
+    #return carsDF
+    numListings = 501 #anticipate lots of listings
+    if queryType == 'files':  #load and parse files
+        for eachFile in params['files']:
+            print(eachFile)
+            with open(eachFile, 'rb') as html:
+                soup = BeautifulSoup(html)
+            # some saved files contain unicode char's the above handles it
+            origin = determineOrigin(soup) #works
+            #print(origin)
+            [numListings,carsDF] = parseData(soup, origin, carsDF)  # the carDF is output, and then input again to be appended
+            print(len(carsDF))
+            #[soup,carsDF] = parseData(soup, origin, carsDF)  # for debug
+            #return [soup,carsDF]
+        return carsDF  #the complete carsDF is returned
+    
+    elif queryType == 'webpage':
+        params['years'] = range(params['beginYear'],params['endYear']+1)
+        for site in params['sites']:  # scan over the sites
+            if site =='autotrader':
+                for year in params['years']:
+                    k=0
+                    while k<=5 and numListings>100*k: #get 100 listings per page - it will find partials
+                        #print(year)
+                        #return
+                        passParams = copy.deepcopy(params)
+                        passParams['year'] = str(year) #pass only one year at a time
+                        searchString = createAutotraderRequest(passParams,k)
+                        #print(searchString)
+                    
+                        #user_agent = {'User-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36'}
+                        user_agent = {'User-agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:41.0) Gecko/20100101 Firefox/41.0'}
+                        r  = requests.get(searchString, headers = user_agent)
+                        data = r.text
+                        soup = BeautifulSoup(data)
+                        origin = determineOrigin(soup) #works
+                        [numListings, carsDF] = parseData(soup, origin, carsDF)
+                        #print(len(carsDF))
+                        k = k+1
+            elif site == 'cars':
+                for year in params['years']:
+                    k=0
+                    while k<=3 and numListings>400: #get 100 listings per page
+                        #print(year)
+                        #return
+                        passParams = copy.deepcopy(params)
+                        passParams['year'] = str(year) #pass only one year at a time
+                        return
+                        searchString = createCarsRequest(passParams,k)
+                        print(searchString)
+                    
+                        user_agent = {'User-agent': 'Mozilla/5.0'}
+                        r  = requests.get(searchString, headers = user_agent)
+                        data = r.text
+                        soup = BeautifulSoup(data)
+                        origin = determineOrigin(soup) #works
+                        [numListings, carsDF] = parseData(soup, origin, carsDF)
+                        #print(len(carsDF))
+                        k = k+1
+            carsDF['year']=carsDF['year'].astype('int')
+            carsDF['price']=carsDF['price'].astype('int')
+            carsDF['miles']=carsDF['miles'].astype('int')
+            return carsDF  #debug return carsDF
+
+            
+def determineIfFileWebpagePandas(params):
+    if 'files' in params.keys():
+        return 'files'
+    elif 'df' in params.keys():
+        return 'df'
+    elif 'Make' in params.keys():
+        return 'webpage'
+    
+def createAutotraderRequest(params,k):
+    makeString = params['Make'].upper()
+    modelString = params['Model'].upper()
+    endYearString = str(params['year'])
+    startYearString = str(params['year'])
+    zipString = str(params['zip'])
+    firstRecord = str(100*k+1)
+    if len(makeString)>6:
+        makeCode1 = makeString[0:5].upper()
+    else:
+        makeCode1 = makeString.upper()
+#    autoTraderString = 'http://www.autotrader.com/cars-for-sale/'\
+#        + zipString + '?endYear=' + endYearString + '&makeCode1=' + makeString\
+#        + '&mmt=[' + makeString + '[' + modelString + '[]][]]&modelCode1=' + \
+#        modelString + '&searchRadius=100&startYear=' + startYearString+\
+#        'firstRecord=' + firstRecord + '&numRecords=100'  #figure out how to get multiple pages
+        
+ #   autoTraderString = 'http://www.autotrader.com/cars-for-sale/'\
+ #   + endYearString + '/' + makeString + '/' + modelString + '/Arnold+MD-21012?endYear='\
+ #   + endYearString + '&firstRecord=' + firstRecord + '&makeCode1=' + makeString.upper() + '&mmt=[' + makeString.upper() + '['+ modelString.upper() + '[]][]]&modelCode1=' + modelString.upper() + '&numRecords=100&searchRadius=100&showcaseListingId=410488662&showcaseOwnerId=100000440&startYear=2012&Log=0'
+
+ #   autoTraderString = 'http://www.autotrader.com/cars-for-sale/'\
+ #   + makeString + '/' + modelString + '/Arnold+MD-21012?endYear='\
+ #   + endYearString + '&firstRecord=' + firstRecord + '&makeCode1=' + makeCode1 + '&mmt=[' + makeCode1 + '['+ modelString.upper() + '[]][]]&modelCode1=' + modelString.upper() + '&numRecords=100&searchRadius=200&startYear='+ startYearString+ '&Log=0'
+
+    autoTraderString = 'http://www.autotrader.com/cars-for-sale/'\
+    + endYearString + '/' + makeString.title() + '/' + modelString.title() + '/' + zipString+ '?endYear='\
+    + endYearString + '&firstRecord=' + firstRecord + '&numRecords=100&searchRadius=100&startYear='+ startYearString+ '&Log=0'
+
+
+
+    #print(autoTraderString)
+            
+    return autoTraderString
+
+
+def createCarsRequest(params,k):
+    makeString = params['Make'].upper()
+    modelString = params['Model'].upper()
+    endYearString = str(params['year'])
+    startYearString = str(params['year'])
+    zipString = str(params['zip'])
+    firstRecord = str(100*k+1)
+
+
+    temp1 = ' http://www.cars.com/for-sale/searchresults.action?feedSegId=28705&rpp=100&sf2Nm=miles&requestorTrackingInfo=RTB_SEARCH&yrId=39723&sf1Nm=price&sf2Dir=ASC&stkTypId=28881&PMmt=1-1-0&zc=21012&rd=100&mdId=20606&mkId=20017&sf1Dir=DESC&searchSource=UTILITY&crSrtFlds=stkTypId-feedSegId-mkId-mdId&pgId=2102&rn=50'
+        
+    temp2 = 'http://www.cars.com/for-sale/searchresults.action?feedSegId=28705&rpp=50&sf2Nm=miles&requestorTrackingInfo=RTB_SEARCH&yrId=47272&sf1Nm=price&sf2Dir=ASC&stkTypId=28881&PMmt=1-1-0&zc=21012&rd=100&mdId=20606&mkId=20017&sf1Dir=DESC&searchSource=UTILITY&crSrtFlds=stkTypId-feedSegId-mkId-mdId&pgId=2102&rn=50'       
+        
+    carsString = 'http://www.autotrader.com/cars-for-sale/'\
+    + endYearString + '/' + makeString + '/' + modelString + '/Arnold+MD-21012?endYear='\
+    + endYearString + '&firstRecord=' + firstRecord + '&makeCode1=' + makeString.upper() + '&mmt=[' + makeString.upper() + '['+ modelString.upper() + '[]][]]&modelCode1=' + modelString.upper() + '&numRecords=100&searchRadius=100&showcaseListingId=410488662&showcaseOwnerId=100000440&startYear=2012&Log=0'
+    
+    #print(autoTraderString)
+            
+    return carsString
+
+
+
+
+
+def determineOrigin(soup):
+    origin  = 'unknown'
+    try:
+        temp = soup.find_all("title")[0].text.find("Autotrader")
+        if temp>-1:
+            origin = 'Autotrader'
+    except ValueError:
+        print("")
+    try:
+        temp = soup.find_all("title")[0].text.find("Cars.com")
+        if temp>-1:
+            origin = 'Cars'
+    except ValueError:
+        print("")
+    return origin
+
+def parseData(soup, origin, carsDF):
+    if origin=="Autotrader":
+        carsDF = parseAutotrader(soup, carsDF)
+        #len(carsDF)
+    if origin=="Cars":
+        #print("Cars!!")
+        #return [soup, carsDF]
+        carsDF = parseCars(soup, carsDF)
+    return carsDF
+
+#################################################################
+#             FUNCTION TO PARSE DATA FROM AUTOTRADER            #
+#################################################################
+
+#function to parse data from Autotrader.com
+def parseAutotrader(soup, carsDF):
+    origin  = 'autotrader'
+    columns = list(carsDF.columns.values)
+    
+    #DETERMINE NUMBER OF LISTINGS
+    numListings = soup.find_all("span",{"class": "num-listings"})[0].text
+    numListings = numListings.replace(',','')
+    numListings = int(numListings)
+    
+    #print(numListings)
+    #exclude spotlight listings
+    
+    g_dataNew = soup.find_all("div",{"class": "listing listing-findcar listing-dealer listing-isClickable"})
+    g_dataOld = soup.find_all("div",{"class": "listing listing-findcar listing-dealer "})
+    
+    if len(g_dataNew)>len(g_dataOld):
+        g_data = g_dataNew
+    else:
+        g_data = g_dataOld
+    #print(len(g_dataNew))
+    #print(len(g_dataOld))
+
+    cars = []
+    
+    price = []
+    mileage = []
+    distance = []
+    
+    for item in g_data:
+        dict = {}
+        
+        #GET YEAR MAKE MODEL
+        #GET PRICE
+        
+        try:
+            makeText = item.find_all("span",{"data-birf-log":"component"})
+            
+            YMM = []
+            trim1 = []
+            year1 = []
+            make1 = []
+            model1 = []
+            uniqueList = []
+            YMM = makeText[0].text
+            trim1 = makeText[2].text
+            
+            #print(YMM)
+            #print(trim)
+            #print(uniqueList)
+            #the first one is YMM
+            YMM = YMM.replace('\n','').split(' ')
+            if YMM[0][0] in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ': #most likely branch
+                type1 = YMM[0] # Used or Certified
+                year1 = int(YMM[1]) #
+                make1 = YMM[2]
+                model1 = YMM[3]
+            else:
+                type1 = 'unknown' # Used or Certified
+                year1 = int(YMM[0]) #
+                make1 = YMM[1]
+                model1 = YMM[2]
+                
+            #print(year1)
+            #print(year1)
+            #print(make1)
+            #print(model1)
+            #print(trim1)
+            #return
+        except (ValueError, IndexError):
+            make1  = 'unknown'
+            model1 = 'unkonwn'
+            year1  = np.nan
+            trim1  = 'unkonwn'
+            type1  = unkonwn
+            #print('error')
+            #return
+            
+        #GET PRICE
+        try:
+            #print(item.prettify())
+            #price1 = item.find_all("div",{"class":" listing-content "})
+            #print(price1)
+            #print(item)
+            #pdb.set_trace()
+            price1 = item.find_all("div",{"class":"atcui-column listingColumn1"})
+            price1 = item.find_all("h4",{"class":"primary-price"})[0].text
+            #print(price1)
+            price1 = float(price1.split()[0].replace(',','').replace('$',''))
+            
+            
+        except (ValueError, IndexError):
+            price1 = 0
+        #GET MILES
+        try:
+            #print(item.prettify())
+            miles1 = item.find_all("span",{"class":"mileage"})[0].text
+            miles1 = float(miles1.split()[0].replace(',',''))
+        except (ValueError, IndexError):
+            miles1 = 0
+        
+        #GET COLOR
+        try:
+            temp1 = item.find_all("div",{"class":"atcui-column  listingColumn2"})
+            #print("here")
+            #print(temp1)
+            color1 = temp1[0].find_all("span",{"class":"color"})[0].text.lower()
+            color1 = color1.replace('\n','')
+            if len(color1.split())>3:
+                color1 = 'unknown'
+        except (ValueError, IndexError):   
+            color1 = 'unknown'
+        
+        #print(color1)
+        
+        #GET DISTANCE
+        try:
+            temp1 = item.find_all("div",{"class":"owner-details"})
+            dist1 = temp1[0].find_all("span",{"class":"distance-cont"})
+            dist1 = int(dist1[0].text.split(' ')[0])
+        except (ValueError, IndexError):
+            dist1 = 0
+        #print(dist1)
+       
+        data =[origin,year1,make1,model1,trim1,miles1,color1,price1,dist1]
+        columns = list(carsDF.columns.values)
+        temp1df = [data]
+        temp3df = pd.DataFrame(temp1df, columns=columns)
+        carsDF = carsDF.append(temp3df, ignore_index=True)
+    
+    #print(carsDF.head())
+    return [numListings, carsDF]
+
+
+
+#################################################################
+#             FUNCTION TO PARSE DATA FROM CARS.COM              #
+#################################################################
+
+#functions to parse data from cars.com
+def priceFilter(input):
+    output = float(input.replace('$','').replace(',',''))
+    return output
+
+def milesFilter(input):
+    output = float(input.replace(',','').split(' ')[0])
+    return output
+
+def yearFilter(input):
+    return int(input)
+    
+def distanceFilter(input):
+    return float(input.replace('~','').replace('mi. away',''))
+
+def noChange(input):
+    return input
+
+def getValues(input,key):
+    output=[]
+    for i in input:
+        output.append(i[key])
+    return output
+
+def getMMT(input):
+    make = 'unkonwn'
+    model = 'unknown'
+    trim = 'unkonwn'
+    tempList = input.split(' ')
+    if (len(tempList))>2:
+        make = tempList[0]
+        model = tempList[1]
+        trim = ' '.join(tempList[2:])
+    return [make,model,trim]
+    
+    
+    
+    
+#get clean data from cars.com
+def parseCars(soup, carsDF):
+    origin  = 'Cars.com'
+    columns = list(carsDF.columns.values)
+    
+    #exclude spotlight listings
+    k = 0
+    sortBy = {"priceSort":0,"milesSort":0,
+      "modelYearSort":0,"exteriorColorSort":"unknown",
+              "mmtSort":"unknown","engineDescriptionSort":"unknown",
+              "stockNumberSort":"unknown","seller-distance muted locationSort":0}
+    filterFunction = {"priceSort":priceFilter,
+                      "milesSort":milesFilter,
+                      "modelYearSort":yearFilter,
+                      "exteriorColorSort":noChange,
+                      "mmtSort":noChange,
+                      "engineDescriptionSort":noChange,
+                      "stockNumberSort":noChange,
+                      "seller-distance muted locationSort":distanceFilter}
+    g_data = soup.find_all("div",{"class":"row vehicle"})
+
+    #print(len(g_data))
+    #return # DEBUG
+    cars = []
+    for item in g_data:
+        #print(item.prettify())
+        #return
+        tempDict = {}
+        for carAttribute in list(sortBy.keys()):
+            
+            try:
+                temp1 = item.find_all("span",{"class":carAttribute})[0].text
+                temp1 = filterFunction[carAttribute](temp1)
+            except (ValueError, IndexError):
+                temp1 = sortBy[carAttribute] #assign default value
+                
+            #temp2 = item.find_all("span",{"class":"exteriorColorSort"})[0].text
+            #temp3 = item.find_all("span",{"class":"priceSort"})[0].text
+            #print the price
+            #print(temp1[0].find_all("h4",{"class":"primary-price"})[0].text)
+            #print(item)
+            #print(temp1)
+            
+            #print(temp2)
+            #print(temp2)
+            
+            
+            tempDict.update({carAttribute:temp1})
+            #print(tempDict)
+        
+        #columns = ['origin','year','make','model',
+        #       'trim','miles','color','price','dist']
+        
+        MMT = getMMT(tempDict['mmtSort'])
+        
+        data = [origin,tempDict['modelYearSort'],MMT[0],MMT[1],
+                MMT[2],tempDict['milesSort'],tempDict['exteriorColorSort'],
+                tempDict['priceSort'],tempDict['seller-distance muted locationSort']]
+        columns = list(carsDF.columns.values)
+        temp1df = [data]
+        temp3df = pd.DataFrame(temp1df, columns=columns)
+        carsDF = carsDF.append(temp3df, ignore_index=True)
+        
+        #print(carsDF.head())
+        #return
+        k = k+1
+        
+        #if k>15:
+        #    break
+    return carsDF
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

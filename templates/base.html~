@@ -1,0 +1,17 @@
+<html>
+  <head>
+    {% if title %}
+    <title>{{ title }} - microblog</title>
+    {% else %}
+    <title>Used Car Market Analysis</title>
+    {% endif %}
+  </head>
+  <body>
+    <div class = "navbar-default">Navigation: <a href="/index">Home</a>
+    <a href="/histogram">Count Summary</a>
+    <a href="/index">Overview</a>
+    <a href="/index">FAQ</a></div>
+    <hr>
+    {% block content %}{% endblock %}
+  </body>
+</html>

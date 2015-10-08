@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+	
+<!--  <head>
+       	<title>{{ tickerSymbol }} data </title>
+ <!-- <link href="http://cdn.pydata.org/bokeh/release/bokeh-0.9.3.min.css" rel="stylesheet" type="text/css"> 
+<script src="http://cdn.pydata.org/bokeh/release/bokeh-0.9.3.min.js"> -->
+<!--  </head> -->
+
+<head>
+{% extends "base.html" %}
+{% block content %}
+
+		<meta charset="utf-8">
+		<title>Used Car Market Analysis</title>
+                <link rel=stylesheet type=text/css href='{{ url_for('static', filename='css/tables.css') }}'>
+
+	</head>
+	<body>
+		<div class=page>
+
+{{ plottingData | safe}}
+  			<h1>Summary of {{ titleString }}<br>
+ 			<a href=index > Back</h1></a> 
+  			<div class=metanav>
+    			
+			<p> {{ plottingData | safe }} </p>
+    			
+
+
+  			</div>
+		</div>
+<h1>Summary stats.</h1>
+{% for table in carsDF1 %}
+<h3>{{titles[loop.index]}}</h3>
+{{ table|safe }}
+{% endfor %}
+	</body>
+
+{% endblock %}
+</html>
+

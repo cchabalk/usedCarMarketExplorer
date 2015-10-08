@@ -1,0 +1,53 @@
+<!doctype html>
+
+<html lang="en">
+{% extends "base.html" %}
+{% block content %}
+	<head>
+		<meta charset="utf-8">
+		<title>Used Car Market Analysis</title>
+                <link rel=stylesheet type=text/css href='{{ url_for('static', filename='css/style.css') }}'>
+
+	</head>
+	<body>
+
+
+		<div class=page>
+  			<h1> Used Car Market Analysis</h1>
+  			<div class=metanav>
+
+    			<h4>Please enter the desired analysis parameters...</h4>
+
+    			<form id='input' method='post' action='/graph'>	<!-- notice the action -->
+	  			<p>Make <input type='text' name='make' />
+<p>Model <input type='text' name='model' /> 
+<p>Beginning Year <input type='text' name='yearBegin' /> 
+<p>Ending Year <input type='text' name='yearEnd' /> 
+<p>Zip Code <input type='text' name='zipCode' /> 
+</p>
+				<p> Autotrader.com <input type="checkbox" name="features" value="autotrader" checked=True><br>
+                                   Cars.com <input type="checkbox" name="features" value="cars" readonly="readonly" disabled="disabled"><br>
+                                   
+				 <h4>Or, enter (.html, .pd) file names below </h4>
+<p margin=100> Example:  ./exampleAutodata/accord2012p001.htm <br>
+                          ./exampleAutodata/accord2012p001.htm <br>
+                          ./exampleAutodata/accord2012p001.htm </p>
+	
+	  			<p>File 1 <input type='text' name='file1' />
+<p>File 2 <input type='text' name='file2' /> 
+<p>File 3 <input type='text' name='file3' /> 
+<p>File 4 <input type='text' name='file4' /> 
+</p>
+
+				<input type="submit" value="Analyze"></p>
+				</form>
+			</div>
+  			
+		</div>
+	</body>
+{% endblock %}
+</html>
+
+
+
+

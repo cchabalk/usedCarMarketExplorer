@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+	
+<!--  <head>
+       	<title>{{ tickerSymbol }} data </title>
+ <!-- <link href="http://cdn.pydata.org/bokeh/release/bokeh-0.9.3.min.css" rel="stylesheet" type="text/css"> 
+<script src="http://cdn.pydata.org/bokeh/release/bokeh-0.9.3.min.js"> -->
+<!--  </head> -->
+
+<head>
+{% extends "base.html" %}
+{% block content %}
+
+		<meta charset="utf-8">
+		<title>Used Car Market Analysis</title>
+                <link rel=stylesheet type=text/css href='{{ url_for('static', filename='css/tables.css') }}'>
+
+	</head>
+	<body>
+		<div class=page>
+
+  			<h1>Summary of {{ titleString }}<br>
+ 			<a href=index > Back</h1></a> 
+  			<div class=metanav>
+<h4>Multi Year Results<br></h4>
+    			<img src="/static/images/yearsMilesPrice.png"></img></div>
+<div class=metanav>
+<h4>Groupings based on options, 2012</h4>
+                        <img src="/static/images/trimPlotSafe.png"></img></div>
+			
+<h4 style='font-family:courier'>Miles:62000; Price: 17000</h4>
+<h4 style='font-family:courier'>Predicted Group: EX-L V6 Sedan w/Navigation - 10.45%</h4>
+
+  			</div>
+		</div>
+
+	</body>
+
+{% endblock %}
+</html>
+

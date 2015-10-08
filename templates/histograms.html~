@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+	
+<head>
+{% extends "base.html" %}
+{% block content %}
+
+		<meta charset="utf-8">
+		<title>Used Car Market Analysis</title>
+                <link rel=stylesheet type=text/css href='{{ url_for('static', filename='css/tables.css') }}'>
+
+	</head>
+	<body>
+		<div class=page>
+
+{{ plottingData | safe }}
+
+  			<h1>Summary of {{ titleString }}<br>
+ 			<a href=index > Back</h1></a> 
+  			<div class=metanav>
+    			
+			
+    			
+
+
+  			</div>
+		</div>
+{% endblock %}
+</html>
+
