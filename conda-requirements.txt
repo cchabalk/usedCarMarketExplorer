@@ -4,6 +4,5 @@ pandas
 base64
 matplotlib
 io
-base64
 seaborn
 sk-learn
